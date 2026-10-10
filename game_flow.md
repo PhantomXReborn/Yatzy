@@ -1,7 +1,7 @@
 # 🎮 Game Flow & Interactions — Yatzy
 
 > **Course:** CST3106 — Lab 05
-> **Author:** [Your Name]
+> **Author:** Reece Hannah
 > **Project:** Yatzy Game
 > **Last Updated:** 2026
 
