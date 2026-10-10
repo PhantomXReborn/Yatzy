@@ -24,7 +24,9 @@
       --gold-dark: #b08a2e;
       --cream: #f5f0e1;
 
-      /* Secondary accents */
+      /* Secondary accents
+         Player 1 = blue, Player 2 = red.
+         Red is also used as a translucent tint for the Yatzy row. */
       --red: #c0392b;
       --red-light: #e74c3c;
       --blue: #2980b9;
@@ -142,6 +144,7 @@
     /* ============================================================
        PLAYER PANEL
        Two side-by-side player cards showing name + total score.
+       Player 1 = blue accent, Player 2 = red accent.
        Active player is highlighted with a colored glow.
        ============================================================ */
     .player-panel {
@@ -338,7 +341,7 @@
     /* ============================================================
        SCORECARD
        Cream table with felt-green header and alternating rows.
-       Rows are clickable in the real game; here they open the modal.
+       Includes Upper Subtotal and Upper Bonus rows.
        ============================================================ */
     .scorecard {
       background: var(--cream);
@@ -393,6 +396,22 @@
       background: var(--gold-light);
     }
 
+    /* Upper section subtotal — bold but unaccented */
+    .scorecard tr.subtotal td {
+      font-weight: 700;
+      border-top: 2px solid rgba(44, 44, 44, 0.25);
+      border-bottom: 2px solid rgba(44, 44, 44, 0.25);
+    }
+
+    /* Upper bonus — blue accent per design_system.md §8.4 */
+    .scorecard tr.bonus {
+      background: rgba(41, 128, 185, 0.15);
+    }
+    .scorecard tr.bonus td {
+      font-style: italic;
+    }
+
+    /* Yatzy row uses a translucent red tint, not a solid fill */
     .scorecard tr.yatzy {
       background: rgba(192, 57, 43, 0.15);
     }
@@ -608,7 +627,8 @@
 
     <!-- ============================================================
          SCORECARD
-         13 categories + total.
+         Upper section (Ones–Sixes) → Upper Subtotal → Upper Bonus →
+         Lower section (3K–Chance) → Yatzy → Total.
          Clicking the active row opens the category modal.
          ============================================================ -->
     <section class="scorecard">
@@ -627,6 +647,8 @@
           <tr><td>Fours</td><td>—</td></tr>
           <tr><td>Fives</td><td>—</td></tr>
           <tr><td>Sixes</td><td>—</td></tr>
+          <tr class="subtotal"><td>Upper Subtotal</td><td>9</td></tr>
+          <tr class="bonus"><td>Upper Bonus (63+)</td><td>—</td></tr>
           <tr class="active" id="openModal"><td>Three of a Kind</td><td>—</td></tr>
           <tr><td>Four of a Kind</td><td>—</td></tr>
           <tr><td>Full House</td><td>—</td></tr>
