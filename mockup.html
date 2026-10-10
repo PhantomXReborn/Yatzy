@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yatzy Mock-up</title>
+  <title>Yatzy — Game Mock-up</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
@@ -71,11 +71,7 @@
     /* ============================================================
        GLOBAL RESET
        ============================================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: var(--font-body);
@@ -89,22 +85,26 @@
 
     /* ============================================================
        GAME CONTAINER
-       Two-column grid: dice tray (left) + scorecard (right).
-       Collapses to one column below 1024px for tablet/mobile.
+       Grid layout:
+         Row 1: header (full width)
+         Row 2: player panel (full width)
+         Row 3: dice tray | scorecard
+         Row 4: footer (full width)
+       Collapses to one column below 1024px.
        ============================================================ */
     .game-container {
       max-width: 1200px;
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
+      gap: 1.5rem;
       position: relative;
       z-index: 1;
     }
 
     /* ============================================================
        HEADER / GAME BAR
-       Frosted glass bar with logo left, player info right.
+       Frosted glass bar with logo left, roll counter right.
        ============================================================ */
     .game-header {
       grid-column: 1 / -1;
@@ -117,6 +117,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .logo {
@@ -127,13 +129,63 @@
       text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
     }
 
-    .player-indicator {
+    .roll-counter {
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      background: var(--blue);
-      color: var(--cream);
-      padding: 0.4rem 1rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.4rem 0.9rem;
       border-radius: var(--radius-pill);
+      border: 1px solid rgba(212, 168, 67, 0.2);
+    }
+
+    /* ============================================================
+       PLAYER PANEL
+       Two side-by-side player cards showing name + total score.
+       Active player is highlighted with a colored glow.
+       ============================================================ */
+    .player-panel {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .player-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.2rem;
+      background: rgba(20, 82, 63, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(212, 168, 67, 0.2);
+      border-radius: var(--radius);
+      transition: transform 0.2s var(--ease-smooth),
+                  box-shadow 0.2s var(--ease-smooth);
+    }
+
+    .player-card.p1 { border-left: 4px solid var(--blue); }
+    .player-card.p2 { border-left: 4px solid var(--red); }
+
+    .player-card.active {
+      transform: scale(1.02);
+    }
+    .player-card.p1.active { box-shadow: var(--glow-blue); }
+    .player-card.p2.active { box-shadow: var(--glow-red); }
+
+    .player-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--cream);
+    }
+
+    .player-score {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 1.4rem;
+      color: var(--gold);
     }
 
     /* ============================================================
@@ -162,6 +214,7 @@
        DIE
        60x60 rounded square with a 3x3 CSS Grid for pips.
        The `data-value` attribute controls which pips are visible.
+       Click to toggle "held" state.
        ------------------------------------------------------------ */
     .die {
       width: 60px;
@@ -177,6 +230,7 @@
       transition: transform 0.2s var(--ease-bounce),
                   box-shadow 0.2s var(--ease-smooth);
       cursor: pointer;
+      position: relative;
     }
 
     .die:hover {
@@ -189,6 +243,24 @@
       box-shadow: var(--shadow), var(--glow-gold);
     }
 
+    /* Checkmark badge shown when die is held */
+    .die.held::after {
+      content: "✓";
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: var(--gold);
+      color: var(--stone);
+      font-size: 0.7rem;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .pip {
       width: 10px;
       height: 10px;
@@ -197,9 +269,7 @@
     }
 
     /* ------------------------------------------------------------
-       PIP LAYOUTS
-       Each face positions its pips on the 3x3 grid.
-       grid-area: row-start / column-start;
+       PIP LAYOUTS — positions pips on the 3x3 grid per face.
        ------------------------------------------------------------ */
     .die[data-value="1"] .pip:nth-child(1) { grid-area: 2 / 2; }
 
@@ -268,6 +338,7 @@
     /* ============================================================
        SCORECARD
        Cream table with felt-green header and alternating rows.
+       Rows are clickable in the real game; here they open the modal.
        ============================================================ */
     .scorecard {
       background: var(--cream);
@@ -332,6 +403,113 @@
     }
 
     /* ============================================================
+       CATEGORY MODAL
+       Overlay + modal for confirming a score selection.
+       Hidden by default; opened via JS (see bottom of file).
+       ============================================================ */
+    .category-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .category-modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--cream);
+      border: 2px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+      color: var(--stone);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-content h3 {
+      font-family: var(--font-display);
+      color: var(--felt);
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-content p {
+      font-size: 0.9rem;
+      color: var(--stone-light);
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: transform 0.2s var(--ease-smooth),
+                  box-shadow 0.2s var(--ease-smooth);
+    }
+
+    .modal-btn.confirm {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+      color: var(--stone);
+    }
+
+    .modal-btn.confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow), var(--glow-gold);
+    }
+
+    .modal-btn.cancel {
+      background: transparent;
+      color: var(--stone-light);
+      border: 1px solid var(--stone-light);
+    }
+
+    .modal-btn.cancel:hover {
+      background: var(--stone-light);
+      color: var(--cream);
+    }
+
+    /* ============================================================
+       TECH TAGS
+       Small pills for the tech stack (used in the footer area).
+       ============================================================ */
+    .tech-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tech-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-pill);
+      background: rgba(26, 107, 82, 0.3);
+      border: 1px solid rgba(212, 168, 67, 0.3);
+      color: var(--cream);
+    }
+
+    /* ============================================================
        FOOTER / STATUS BAR
        Frosted glass bar with mono-font status info.
        ============================================================ */
@@ -339,6 +517,9 @@
       grid-column: 1 / -1;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
       font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text-muted);
@@ -358,42 +539,21 @@
        Phone   <= 480px: smallest dice
        ============================================================ */
     @media (max-width: 1024px) {
-      .game-container {
-        grid-template-columns: 1fr;
-      }
+      .game-container { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px) {
-      .die {
-        width: 50px;
-        height: 50px;
-      }
-      .pip {
-        width: 8px;
-        height: 8px;
-      }
-      .scorecard {
-        font-size: 0.875rem;
-      }
+      .die { width: 50px; height: 50px; }
+      .pip { width: 8px; height: 8px; }
+      .scorecard { font-size: 0.875rem; }
+      .player-panel { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
-      .die {
-        width: 40px;
-        height: 40px;
-      }
-      .pip {
-        width: 6px;
-        height: 6px;
-      }
-      .game-container {
-        padding: 0 0.75rem;
-        gap: 1rem;
-      }
-      .status-bar {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
+      .die { width: 40px; height: 40px; }
+      .pip { width: 6px; height: 6px; }
+      .game-container { padding: 0 0.75rem; gap: 1rem; }
+      .status-bar { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -402,17 +562,33 @@
 
     <!-- ============================================================
          HEADER
-         Logo + current player + roll counter
+         Logo + roll counter.
          ============================================================ -->
     <header class="game-header">
       <div class="logo">🎲 Yatzy</div>
-      <div class="player-indicator">Player 1 · Roll 1/3</div>
+      <div class="roll-counter">Roll 1 of 3</div>
     </header>
+
+    <!-- ============================================================
+         PLAYER PANEL
+         Two cards: Player 1 (blue) and Player 2 (red).
+         Active player has a glow.
+         ============================================================ -->
+    <section class="player-panel">
+      <div class="player-card p1 active">
+        <span class="player-name">👤 Player 1</span>
+        <span class="player-score">59</span>
+      </div>
+      <div class="player-card p2">
+        <span class="player-name">👤 Player 2</span>
+        <span class="player-score">42</span>
+      </div>
+    </section>
 
     <!-- ============================================================
          DICE TRAY
          Five dice showing faces 1–5 (mock-up only).
-         In the real game, JavaScript will set data-value dynamically.
+         Click any die to toggle its "held" state.
          ============================================================ -->
     <section class="dice-tray">
       <div class="dice-row">
@@ -423,11 +599,17 @@
         <div class="die" data-value="5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
       </div>
       <button class="roll-btn">Roll Dice</button>
+      <div class="tech-tags">
+        <span class="tech-tag">HTML5</span>
+        <span class="tech-tag">CSS3</span>
+        <span class="tech-tag">JavaScript</span>
+      </div>
     </section>
 
     <!-- ============================================================
          SCORECARD
-         13 categories + total, with active/yatzy/total row styles.
+         13 categories + total.
+         Clicking the active row opens the category modal.
          ============================================================ -->
     <section class="scorecard">
       <h2>Scorecard</h2>
@@ -445,7 +627,7 @@
           <tr><td>Fours</td><td>—</td></tr>
           <tr><td>Fives</td><td>—</td></tr>
           <tr><td>Sixes</td><td>—</td></tr>
-          <tr class="active"><td>Three of a Kind</td><td>—</td></tr>
+          <tr class="active" id="openModal"><td>Three of a Kind</td><td>—</td></tr>
           <tr><td>Four of a Kind</td><td>—</td></tr>
           <tr><td>Full House</td><td>—</td></tr>
           <tr><td>Small Straight</td><td>—</td></tr>
@@ -465,7 +647,51 @@
       <span>🎲 Yatzy v1.0 · 5 dice · 13 categories</span>
       <span>🏆 High Score: 245 · 👤 Player 1's turn</span>
     </footer>
-
   </div>
+
+  <!-- ============================================================
+       CATEGORY MODAL
+       Confirms score selection. Hidden by default; toggled via JS.
+       ============================================================ -->
+  <div class="category-modal" id="categoryModal">
+    <div class="modal-content">
+      <h3>Confirm Score</h3>
+      <p>Record your score for <strong>Three of a Kind</strong>?</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="cancelModal">Cancel</button>
+        <button class="modal-btn confirm" id="confirmModal">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ------------------------------------------------------------
+       Dice hold toggle
+       Click a die to add/remove the "held" class.
+       ------------------------------------------------------------ */
+    document.querySelectorAll('.die').forEach(die => {
+      die.addEventListener('click', () => die.classList.toggle('held'));
+    });
+
+    /* ------------------------------------------------------------
+       Category modal
+       Click the active scorecard row to open the modal.
+       Cancel or Confirm closes it.
+       ------------------------------------------------------------ */
+    const modal = document.getElementById('categoryModal');
+    document.getElementById('openModal').addEventListener('click', () => {
+      modal.classList.add('open');
+    });
+    document.getElementById('cancelModal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+    document.getElementById('confirmModal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+    /* Close modal when clicking the overlay outside the content */
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+  </script>
 </body>
 </html>
