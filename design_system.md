@@ -20,7 +20,7 @@ This document defines the **design tokens, typography, components, layouts, and 
 
 ## 2. Color Palette
 
-All colors are stored as CSS custom properties (variables) in `:root` inside `style.css`.
+All colors are stored as CSS custom properties (variables) in `:root` inside the inline `<style>` block of `mockup.html`.
 
 ### 2.1 Core Backgrounds (Table Layer)
 
@@ -44,9 +44,9 @@ All colors are stored as CSS custom properties (variables) in `:root` inside `st
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `--red` | `#c0392b` | Score highlights, "Yatzy" category |
+| `--red` | `#c0392b` | Player 2 indicator, Yatzy category tint |
 | `--red-light` | `#e74c3c` | Hover on red elements |
-| `--blue` | `#2980b9` | Player 2 indicator, info |
+| `--blue` | `#2980b9` | Player 1 indicator, info states |
 | `--blue-light` | `#3498db` | Hover on blue elements |
 
 ### 2.4 Structural (Wood & Stone)
@@ -148,8 +148,8 @@ Loaded from **Google Fonts**:
 | `--shadow` | `0 4px 12px rgba(0,0,0,0.4)` | Cards, dice |
 | `--shadow-lg` | `0 8px 24px rgba(0,0,0,0.5)` | Modals, overlays |
 | `--glow-gold` | `0 0 15px rgba(212,168,67,0.4)` | Active dice, selected |
-| `--glow-red` | `0 0 15px rgba(192,57,43,0.4)` | Yatzy celebration |
-| `--glow-blue` | `0 0 15px rgba(41,128,185,0.4)` | Player 2 active |
+| `--glow-red` | `0 0 15px rgba(192,57,43,0.4)` | Player 2 active |
+| `--glow-blue` | `0 0 15px rgba(41,128,185,0.4)` | Player 1 active |
 | `--inner-shadow` | `inset 0 2px 4px rgba(0,0,0,0.2)` | Dice recess, input |
 
 ---
@@ -253,9 +253,10 @@ Loaded from **Google Fonts**:
 | Section | Style |
 |---------|-------|
 | Upper (Ones–Sixes) | Standard rows |
+| Upper Subtotal | Bold, top/bottom border, no accent |
+| Upper Bonus (63+) | Blue accent background |
 | Lower (3K–Chance) | Standard rows |
-| Yatzy | Red accent background |
-| Bonus | Blue accent background |
+| Yatzy | Red accent background (`rgba(192,57,43,0.15)`) |
 | Total | Bold, gold background |
 
 ### 8.5 Player Panel
@@ -266,10 +267,14 @@ Loaded from **Google Fonts**:
 - **Background:** `rgba(20,82,63,0.7)` + backdrop blur
 - **Border:** 1px gold (20% opacity), 12px radius
 - **Padding:** 1rem
-- **Player 1:** Blue accent border-left
-- **Player 2:** Red accent border-left
+- **Player 1:** Blue accent border-left (`--blue`)
+- **Player 2:** Red accent border-left (`--red`)
 - **Active Player:** Glow in player color, scale 1.02
 - **Score:** Mono font, 1.5rem, bold
+
+> Player colors are deliberately the opposite of the *category* accents: blue = P1,
+> red = P2. The Yatzy row uses a translucent red tint, not a solid fill, to avoid
+> being mistaken for Player 2's color.
 
 ### 8.6 Category Modal (Score Selection)
 
@@ -433,17 +438,17 @@ Loaded from **Google Fonts**:
 
 | Component | Class | File Location | Screenshot |
 |-----------|-------|---------------|------------|
-| Game Header | `.game-header` | style.css | `01-header.png` |
-| Player Panel | `.player-panel` | style.css | `02-player.png` |
-| Dice Tray | `.dice-tray` | style.css | `03-dice.png` |
-| Die | `.die` | style.css | `03-dice.png` |
-| Pip | `.pip` | style.css | `03-dice.png` |
-| Roll Button | `.roll-btn` | style.css | `04-button.png` |
-| Scorecard | `.scorecard` | style.css | `05-scorecard.png` |
-| Score Row | `.score-row` | style.css | `05-scorecard.png` |
-| Category Modal | `.category-modal` | style.css | `06-modal.png` |
-| Status Bar | `.status-bar` | style.css | `07-footer.png` |
-| Tech Tag | `.tech-tag` | style.css | `08-tags.png` |
+| Game Header | `.game-header` | mockup.html (inline) | `01-header.png` |
+| Player Panel | `.player-panel` | mockup.html (inline) | `02-player.png` |
+| Dice Tray | `.dice-tray` | mockup.html (inline) | `03-dice.png` |
+| Die | `.die` | mockup.html (inline) | `03-dice.png` |
+| Pip | `.pip` | mockup.html (inline) | `03-dice.png` |
+| Roll Button | `.roll-btn` | mockup.html (inline) | `04-button.png` |
+| Scorecard | `.scorecard` | mockup.html (inline) | `05-scorecard.png` |
+| Score Row | `.score-row` | mockup.html (inline) | `05-scorecard.png` |
+| Category Modal | `.category-modal` | mockup.html (inline) | `06-modal.png` |
+| Status Bar | `.status-bar` | mockup.html (inline) | `07-footer.png` |
+| Tech Tag | `.tech-tag` | mockup.html (inline) | `08-tags.png` |
 
 ---
 
@@ -462,5 +467,5 @@ Loaded from **Google Fonts**:
 
 ## 14. Author & License
 
-**[Your Name]** — CST3106 Student
-MIT License © 2026w 
+**Reece Hannah** — CST3106 Student
+MIT License © 2026
