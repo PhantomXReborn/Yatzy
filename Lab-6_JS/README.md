@@ -121,6 +121,11 @@ Here is a visual overview of the final single-player Yatzy game:
 
 ### Usage
 
+Run in console for Yatzy: 
+```bash
+npx http-server
+```
+
 To run the game, no build tools are required. Simply open `index.html` in a browser. The HTML must load the modules in the correct order (logic first, UI controller last):
 
 ```html
