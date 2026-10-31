@@ -36,8 +36,9 @@ Lab 07 focused on bridging the gap between the backend logic modules (created in
 - **5 dice**, 6-sided — classic Yatzy.
 - **13 scoring categories** (6 upper + 7 lower).
 - **3 rolls per turn**, with hold/re-roll support.
-- **2 players** by default (configurable).
+- **Single-player** — Focused on the core assignment requirement.
 - **63+ upper bonus = 35 points** — standard rule.
+- **Local Storage** — Utilized to save and track the highest score across sessions.
 - **Separation of Concerns** — The UI (`app.js`) is completely decoupled from the game rules (`yatzyEngine.js`) and state (`yatzyGame.js`).
 
 ### Project Architecture
@@ -50,6 +51,26 @@ The project is divided into four distinct modules to ensure clean, maintainable 
 | **Game State** | `yatzyGame.js` | Game flow, turns, rounds, player tracking |
 | **Scoring Engine** | `yatzyEngine.js` | Rules, score calculation, validation, score table |
 | **Dice** | `dice.js` | Random number generation, tracking held dice |
+
+---
+
+## 📸 Screenshots
+
+Here is a visual overview of the final single-player Yatzy game:
+
+**Game Board & Dice Tray**
+![Game Board](screenshots/10-board.png)
+
+**Scorecard Preview (Checking potential scores)**
+![Score Check](screenshots/11-scoreCheck.png)
+
+**Confirming a Score**
+![Score Confirm](screenshots/13-scoreConfirm.png)
+
+**End Game & High Score Tracking**
+![High Score](screenshots/12-highscore.png)
+
+---
 
 ### Module API Overview
 
@@ -93,8 +114,9 @@ The project is divided into four distinct modules to ensure clean, maintainable 
 |----------|-------------|
 | `renderDice()` | Creates DOM elements for the dice and updates their pips based on `Dice.getValues()` |
 | `renderScorecard()` | Updates the scorecard table with current potential scores and greys out used categories |
-| `updatePlayerPanels()` | Toggles the active player glow and updates total scores |
-| `handleGameOver()` | Triggers the final winner alert when all categories are filled |
+| `updatePlayerPanel()` | Updates the player's total score |
+| `updateHighScoreDisplay()` | Updates the footer with the saved high score from localStorage |
+| `handleGameOver()` | Triggers the final modal, checks for a new high score, and saves it |
 | `openScoreModal(category, score)` | Opens the confirmation modal for scoring |
 
 ### Usage
