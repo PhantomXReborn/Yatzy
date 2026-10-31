@@ -1,6 +1,6 @@
 # Yatzy Game
 
-A browser-based implementation of the classic dice game **Yatzy** (also known as Yahtzee). Players roll five dice up to three times per turn, aiming to score the highest total by matching specific combinations.
+A browser-based implementation of the classic dice game **Yatzy** (also known as Yahtzee). Players roll five dice up to three times per turn, aiming to score the highest total by matching specific combinations. The game features a classic casino/tabletop aesthetic with modern digital UI elements, animations, and responsive design.
 
 ## Rules
 
@@ -23,19 +23,13 @@ A browser-based implementation of the classic dice game **Yatzy** (also known as
 
 - HTML5
 - CSS3
-- JavaScript (planned for implementation)
+- JavaScript
 
 ---
 
-## Lab 06 — Yatzy Game Modules
+## Lab 07 — UI Integration & Controller
 
-Three skeleton modules demonstrating clean separation of concerns:
-
-| Module | File | Responsibility |
-|--------|------|----------------|
-| **Dice** | `dice.js` | Rolling dice, tracking values, dice count |
-| **Yatzy Engine** | `yatzyEngine.js` | Score calculation, validation, score table |
-| **Yatzy Game** | `yatzyGame.js` | Game state: current player, round, turn flow |
+Lab 07 focused on bridging the gap between the backend logic modules (created in Lab 06) and the user interface (designed in Lab 05). A fourth module, `app.js`, was introduced to act as the UI Controller. It handles event listeners, DOM manipulation, and rendering state based on the underlying data modules.
 
 ### Design Decisions
 
@@ -44,6 +38,18 @@ Three skeleton modules demonstrating clean separation of concerns:
 - **3 rolls per turn**, with hold/re-roll support.
 - **2 players** by default (configurable).
 - **63+ upper bonus = 35 points** — standard rule.
+- **Separation of Concerns** — The UI (`app.js`) is completely decoupled from the game rules (`yatzyEngine.js`) and state (`yatzyGame.js`).
+
+### Project Architecture
+
+The project is divided into four distinct modules to ensure clean, maintainable code:
+
+| Module | File | Responsibility |
+|--------|------|----------------|
+| **UI Controller** | `app.js` | DOM manipulation, event handling, rendering the UI |
+| **Game State** | `yatzyGame.js` | Game flow, turns, rounds, player tracking |
+| **Scoring Engine** | `yatzyEngine.js` | Rules, score calculation, validation, score table |
+| **Dice** | `dice.js` | Random number generation, tracking held dice |
 
 ### Module API Overview
 
@@ -81,17 +87,25 @@ Three skeleton modules demonstrating clean separation of concerns:
 | `endTurn()` | Switches to the next player |
 | `endGame()` | Determines the winner and finalizes |
 
+#### `app.js` (New in Lab 07)
+
+| Function | Description |
+|----------|-------------|
+| `renderDice()` | Creates DOM elements for the dice and updates their pips based on `Dice.getValues()` |
+| `renderScorecard()` | Updates the scorecard table with current potential scores and greys out used categories |
+| `updatePlayerPanels()` | Toggles the active player glow and updates total scores |
+| `handleGameOver()` | Triggers the final winner alert when all categories are filled |
+| `openScoreModal(category, score)` | Opens the confirmation modal for scoring |
+
 ### Usage
 
+To run the game, no build tools are required. Simply open `index.html` in a browser. The HTML must load the modules in the correct order (logic first, UI controller last):
+
 ```html
-<script src="dice.js"></script>
-<script src="yatzyEngine.js"></script>
-<script src="yatzyGame.js"></script>
-<script>
-  YatzyGame.startNewGame(["Alice", "Bob"]);
-  YatzyGame.rollDice();
-  YatzyGame.toggleHold(0);
-  YatzyGame.rollDice();
-  YatzyGame.scoreTurn("chance");
-  console.log(YatzyGame.getState());
-</script>
+<!-- Load Logic Modules First -->
+<script src="js/dice.js"></script>
+<script src="js/yatzyEngine.js"></script>
+<script src="js/yatzyGame.js"></script>
+
+<!-- Load UI Controller Last -->
+<script src="js/app.js"></script>
