@@ -1,38 +1,26 @@
-/**
- * App Controller
- * Handles UI rendering, DOM manipulation, and event listeners.
- * Connects the HTML to the YatzyGame, YatzyEngine, and Dice modules.
- */
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
   const diceContainer = document.getElementById('diceContainer');
   const rollBtn = document.getElementById('rollBtn');
+  const endTurnBtn = document.getElementById('endTurnBtn');
   const rollCounter = document.getElementById('rollCounter');
   const scorecardBody = document.getElementById('scorecardBody');
   const totalScoreDisplay = document.getElementById('totalScoreDisplay');
-  const player1Card = document.getElementById('player1Card');
-  const player2Card = document.getElementById('player2Card');
   const player1Score = document.getElementById('player1Score');
-  const player2Score = document.getElementById('player2Score');
   const statusText = document.getElementById('statusText');
   
   // Modal Elements
   const modal = document.getElementById('categoryModal');
-  const modalText = document.getElementById('modalText');
-  const confirmModalBtn = document.getElementById('confirmModalBtn');
-  const cancelModalBtn = document.getElementById('cancelModalBtn');
+  const modalContent = document.getElementById('modalContent');
 
   let selectedCategory = null;
 
-  // Initialize Game
-  YatzyGame.startNewGame();
+  // Initialize Game (Single Player)
+  YatzyGame.startNewGame(["Player 1"]);
   renderDice();
   renderScorecard();
-  updatePlayerPanels();
+  updatePlayerPanel();
 
-  /**
-   * Renders the 5 dice based on current values and held state.
-   */
   function renderDice() {
     const state = YatzyGame.getState();
     const values = Dice.getValues();
@@ -56,27 +44,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Click to hold/release
       die.addEventListener('click', () => {
+        if (state.rollsThisTurn === 0) return; // Can't hold before rolling
         YatzyGame.toggleHold(index);
-        renderDice(); // re-render to show updated held state
+        renderDice(); 
       });
 
       diceContainer.appendChild(die);
     });
 
     // Update UI text/buttons
-    const rollsLeft = 3 - state.rollsThisTurn;
     rollCounter.textContent = state.rollsThisTurn === 0 ? "Ready to Roll" : `Roll ${state.rollsThisTurn} of 3`;
+    
+    // Disable roll button if no rolls left
     rollBtn.disabled = state.rollsThisTurn >= 3 || !state.running;
     
-    // Update Scorecard preview if they have rolled
+    // Show End Turn button if they have rolled at least once
+    if (state.rollsThisTurn > 0) {
+      endTurnBtn.style.display = 'block';
+      endTurnBtn.textContent = state.rollsThisTurn >= 3 ? "Pick a Score (0)" : "End Turn Early";
+    } else {
+      endTurnBtn.style.display = 'none';
+    }
+    
     if (state.rollsThisTurn > 0) {
       renderScorecard();
     }
   }
 
-  /**
-   * Renders the scorecard based on the current state and dice values.
-   */
   function renderScorecard() {
     const state = YatzyGame.getState();
     const currentValues = Dice.getValues();
@@ -89,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
       const isScored = scoreTable[cat] != null;
       
-      // Calculate potential score for this roll
       const potentialScore = YatzyEngine.calculateScore(cat, currentValues);
 
       tr.innerHTML = `
@@ -97,11 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${isScored ? scoreTable[cat] : (state.rollsThisTurn > 0 ? potentialScore : '—')}</td>
       `;
 
-      // Add specific row classes
       if (cat === 'yatzy') tr.classList.add('yatzy');
-      if (cat === 'fullHouse' || cat === 'smallStraight' || cat === 'largeStraight') {
-         // Just for visual separation in future if needed
-      }
 
       if (isScored) {
         tr.style.opacity = '0.5';
@@ -112,20 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       scorecardBody.appendChild(tr);
       
-      // Insert Subtotal and Bonus after Sixes
-      if (cat === 'sixes') {
-        addSubtotalRows(scoreTable);
-      }
+      if (cat === 'sixes') addSubtotalRows(scoreTable);
     });
 
-    // Calculate current total
-    const currentTotal = YatzyEngine.getTotalScore(playerIndex);
-    totalScoreDisplay.textContent = currentTotal;
+    totalScoreDisplay.textContent = YatzyEngine.getTotalScore(playerIndex);
   }
 
-  /**
-   * Adds the subtotal and bonus rows after the upper section.
-   */
   function addSubtotalRows(scoreTable) {
     const upperCats = ['ones','twos','threes','fours','fives','sixes'];
     let upperTotal = 0;
@@ -143,116 +124,99 @@ document.addEventListener('DOMContentLoaded', () => {
     scorecardBody.appendChild(bonusTr);
   }
 
-  /**
-   * Formats camelCase keys to Title Case.
-   */
   function formatCategoryName(str) {
-    return str
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, s => s.toUpperCase());
+    return str.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
   }
 
-  /**
-   * Updates the player cards (scores and active glow).
-   */
-  function updatePlayerPanels() {
+  function updatePlayerPanel() {
     const state = YatzyGame.getState();
-    
-    // Update scores
     player1Score.textContent = state.players[0].totalScore;
-    player2Score.textContent = state.players[1].totalScore;
-
-    // Toggle active classes
-    if (state.currentPlayerIndex === 0) {
-      player1Card.classList.add('active');
-      player2Card.classList.remove('active');
-    } else {
-      player2Card.classList.add('active');
-      player1Card.classList.remove('active');
-    }
-
-    // Update footer status
     statusText.textContent = `🏆 High Score: 245 · 👤 ${state.currentPlayer.name}'s turn`;
   }
 
-  /**
-   * Opens the confirmation modal.
-   */
   function openScoreModal(category, score) {
     selectedCategory = category;
-    modalText.innerHTML = `Record your score for <strong>${formatCategoryName(category)}</strong>?<br><br>Points: <strong>${score}</strong>`;
+    modalContent.innerHTML = `
+      <h3>Confirm Score</h3>
+      <p>Record your score for <strong>${formatCategoryName(category)}</strong>?<br><br>Points: <strong>${score}</strong></p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="cancelModalBtn">Cancel</button>
+        <button class="modal-btn confirm" id="confirmModalBtn">Confirm</button>
+      </div>
+    `;
     modal.classList.add('open');
+
+    document.getElementById('cancelModalBtn').addEventListener('click', () => {
+      modal.classList.remove('open');
+      selectedCategory = null;
+    });
+
+    document.getElementById('confirmModalBtn').addEventListener('click', () => {
+      const result = YatzyGame.scoreTurn(selectedCategory);
+      if (result.success) {
+        modal.classList.remove('open');
+        selectedCategory = null;
+        
+        const state = YatzyGame.getState();
+        if (!state.running) {
+          handleGameOver();
+        } else {
+          renderDice();
+          renderScorecard();
+          updatePlayerPanel();
+        }
+      }
+    });
   }
 
-  // --- Event Listeners ---
+  // End Turn Button Logic (Assigns 0 points to a random empty category if they give up)
+  endTurnBtn.addEventListener('click', () => {
+    const state = YatzyGame.getState();
+    const scoreTable = YatzyEngine.getScoreTable(state.currentPlayerIndex);
+    
+    // Find the first available category to assign a 0
+    const emptyCat = YatzyEngine.CATEGORIES.find(c => scoreTable[c] == null);
+    
+    if (emptyCat) {
+      YatzyGame.scoreTurn(emptyCat);
+      renderDice();
+      renderScorecard();
+      updatePlayerPanel();
+    }
+  });
 
   rollBtn.addEventListener('click', () => {
     const state = YatzyGame.getState();
     if (state.rollsThisTurn >= 3) return;
 
-    // Add visual roll animation
     const dice = diceContainer.querySelectorAll('.die');
     dice.forEach(d => {
       if (!d.classList.contains('held')) d.classList.add('rolling');
     });
 
-    // Perform the roll in the logic
     YatzyGame.rollDice();
     
-    // Update UI after a short animation delay
     setTimeout(() => {
       renderDice();
     }, 300);
   });
 
-  confirmModalBtn.addEventListener('click', () => {
-    if (!selectedCategory) return;
-
-    const result = YatzyGame.scoreTurn(selectedCategory);
-    
-    if (result.success) {
-      modal.classList.remove('open');
-      selectedCategory = null;
-      
-      const state = YatzyGame.getState();
-      
-      if (!state.running) {
-        handleGameOver();
-      } else {
-        renderDice();
-        renderScorecard();
-        updatePlayerPanels();
-      }
-    } else {
-      alert(result.message); // Handle invalid selection (shouldn't happen with UI checks)
-    }
-  });
-
-  cancelModalBtn.addEventListener('click', () => {
-    modal.classList.remove('open');
-    selectedCategory = null;
-  });
-
   function handleGameOver() {
     const finalResult = YatzyGame.endGame();
+    const finalScore = finalResult.finalScores[0].score;
     
-    let message = "Game Over!\n\n";
-    finalResult.finalScores.forEach(p => {
-      message += `${p.name}: ${p.score}\n`;
-    });
-    
-    if (finalResult.tie) {
-      message += `\nIt's a tie!`;
-    } else {
-      message += `\nWinner: ${finalResult.winner}! 🏆`;
-    }
-    
-    alert(message);
-    
-    // Optional: Reset game after alert
-    // YatzyGame.startNewGame();
-    // renderDice();
-    // renderScorecard();
-    // updatePlayerPanels();
+    const message = finalScore >= 200 
+      ? "Congratulations! You are a Yatzy master! 🏆" 
+      : "Good try! Better luck next time. 🎲";
+      
+    modalContent.innerHTML = `
+      <h3>Game Over!</h3>
+      <p style="font-size: 1.2rem; margin: 1rem 0;">Final Score: <strong>${finalScore}</strong></p>
+      <p>${message}</p>
+      <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+        <button class="modal-btn confirm" onclick="location.reload()">Play Again</button>
+      </div>
+    `;
+    modal.classList.add('open');
   }
 });

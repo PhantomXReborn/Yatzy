@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yatzy — Game</title>
+  <title>Yatzy — Single Player</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -14,22 +14,20 @@
       <div class="roll-counter" id="rollCounter">Roll 1 of 3</div>
     </header>
 
-    <section class="player-panel">
+    <section class="player-panel" style="grid-template-columns: 1fr;">
       <div class="player-card p1 active" id="player1Card">
         <span class="player-name">👤 Player 1</span>
         <span class="player-score" id="player1Score">0</span>
       </div>
-      <div class="player-card p2" id="player2Card">
-        <span class="player-name">👤 Player 2</span>
-        <span class="player-score" id="player2Score">0</span>
-      </div>
     </section>
 
     <section class="dice-tray">
-      <!-- Dice will be injected by JS -->
       <div class="dice-row" id="diceContainer"></div>
       
-      <button class="roll-btn" id="rollBtn">Roll Dice</button>
+      <div class="controls" style="display: flex; gap: 1rem;">
+        <button class="roll-btn" id="rollBtn">Roll Dice</button>
+        <button class="roll-btn" id="endTurnBtn" style="background: var(--stone-light); color: var(--cream); display: none;">End Turn</button>
+      </div>
       
       <div class="tech-tags">
         <span class="tech-tag">HTML5</span>
@@ -47,9 +45,7 @@
             <th>Score</th>
           </tr>
         </thead>
-        <tbody id="scorecardBody">
-          <!-- Rows will be injected by JS -->
-        </tbody>
+        <tbody id="scorecardBody"></tbody>
         <tfoot>
           <tr class="total">
             <td>Total</td>
@@ -65,22 +61,16 @@
     </footer>
   </div>
 
+  <!-- Modal for Scoring AND Game Over -->
   <div class="category-modal" id="categoryModal">
-    <div class="modal-content">
-      <h3>Confirm Score</h3>
-      <p id="modalText">Record your score?</p>
-      <div class="modal-actions">
-        <button class="modal-btn cancel" id="cancelModalBtn">Cancel</button>
-        <button class="modal-btn confirm" id="confirmModalBtn">Confirm</button>
-      </div>
+    <div class="modal-content" id="modalContent">
+      <!-- Content will be injected by JS -->
     </div>
   </div>
 
-  <!-- Load Modules -->
   <script src="js/dice.js"></script>
   <script src="js/yatzyEngine.js"></script>
   <script src="js/yatzyGame.js"></script>
-  <!-- Load Controller -->
   <script src="js/app.js"></script>
 </body>
 </html>
