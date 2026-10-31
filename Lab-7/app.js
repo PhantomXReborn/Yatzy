@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // --- High Score Logic ---
+  // Retrieve from browser storage, or default to 0
+  let highScore = parseInt(localStorage.getItem('yatzyHighScore')) || 0;
+
   // DOM Elements
   const diceContainer = document.getElementById('diceContainer');
   const rollBtn = document.getElementById('rollBtn');
@@ -17,10 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Game (Single Player)
   YatzyGame.startNewGame(["Player 1"]);
+  updateHighScoreDisplay(); // Set initial footer text
   renderDice();
   renderScorecard();
   updatePlayerPanel();
 
+  /**
+   * Renders the dice and buttons based on current state.
+   */
   function renderDice() {
     const state = YatzyGame.getState();
     const values = Dice.getValues();
@@ -71,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * Renders the scorecard rows dynamically.
+   */
   function renderScorecard() {
     const state = YatzyGame.getState();
     const currentValues = Dice.getValues();
@@ -101,12 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       scorecardBody.appendChild(tr);
       
+      // Insert Subtotal and Bonus after Sixes
       if (cat === 'sixes') addSubtotalRows(scoreTable);
     });
 
     totalScoreDisplay.textContent = YatzyEngine.getTotalScore(playerIndex);
   }
 
+  /**
+   * Adds the upper section subtotal and bonus rows.
+   */
   function addSubtotalRows(scoreTable) {
     const upperCats = ['ones','twos','threes','fours','fives','sixes'];
     let upperTotal = 0;
@@ -124,16 +139,31 @@ document.addEventListener('DOMContentLoaded', () => {
     scorecardBody.appendChild(bonusTr);
   }
 
+  /**
+   * Formats camelCase category names to Title Case with spaces.
+   */
   function formatCategoryName(str) {
     return str.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
   }
 
+  /**
+   * Updates the player score display and the footer status text.
+   */
   function updatePlayerPanel() {
     const state = YatzyGame.getState();
     player1Score.textContent = state.players[0].totalScore;
-    statusText.textContent = `🏆 High Score: 245 · 👤 ${state.currentPlayer.name}'s turn`;
   }
 
+  /**
+   * Updates the footer High Score display.
+   */
+  function updateHighScoreDisplay() {
+    statusText.textContent = `🏆 High Score: ${highScore} · 👤 Player 1's turn`;
+  }
+
+  /**
+   * Opens the modal to confirm a score.
+   */
   function openScoreModal(category, score) {
     selectedCategory = category;
     modalContent.innerHTML = `
@@ -185,10 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Roll Dice Button Logic
   rollBtn.addEventListener('click', () => {
     const state = YatzyGame.getState();
     if (state.rollsThisTurn >= 3) return;
 
+    // Add visual rolling animation to unheld dice
     const dice = diceContainer.querySelectorAll('.die');
     dice.forEach(d => {
       if (!d.classList.contains('held')) d.classList.add('rolling');
@@ -196,20 +228,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     YatzyGame.rollDice();
     
+    // Wait for animation to finish before re-rendering
     setTimeout(() => {
       renderDice();
     }, 300);
   });
 
+  /**
+   * Handles the end of the game, checks high score, and shows the modal.
+   */
   function handleGameOver() {
     const finalResult = YatzyGame.endGame();
     const finalScore = finalResult.finalScores[0].score;
+    
+    let newRecordMessage = "";
+    
+    // Check if the current score beats the stored high score
+    if (finalScore > highScore) {
+      highScore = finalScore;
+      localStorage.setItem('yatzyHighScore', highScore); // Save to browser storage
+      newRecordMessage = "<h3 style='color: var(--gold); text-align: center;'>🎉 NEW HIGH SCORE! 🎉</h3>";
+      updateHighScoreDisplay(); // Instantly update the footer
+    }
     
     const message = finalScore >= 200 
       ? "Congratulations! You are a Yatzy master! 🏆" 
       : "Good try! Better luck next time. 🎲";
       
     modalContent.innerHTML = `
+      ${newRecordMessage}
       <h3>Game Over!</h3>
       <p style="font-size: 1.2rem; margin: 1rem 0;">Final Score: <strong>${finalScore}</strong></p>
       <p>${message}</p>
