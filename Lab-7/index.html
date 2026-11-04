@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yatzy — Single Player</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Ensure your CSS file is located at css/style.css -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="game-container">
+    <header class="game-header">
+      <div class="logo">🎲 Yatzy</div>
+      <div class="roll-counter" id="rollCounter">Roll 1 of 3</div>
+    </header>
+
+    <!-- Single Player Panel -->
+    <section class="player-panel" style="grid-template-columns: 1fr;">
+      <div class="player-card p1 active" id="player1Card">
+        <span class="player-name">👤 Player 1</span>
+        <span class="player-score" id="player1Score">0</span>
+      </div>
+    </section>
+
+    <section class="dice-tray">
+      <div class="dice-row" id="diceContainer"></div>
+      
+      <div class="controls" style="display: flex; gap: 1rem;">
+        <button class="roll-btn" id="rollBtn">Roll Dice</button>
+        <button class="roll-btn" id="endTurnBtn" style="background: var(--stone-light); color: var(--cream); display: none;">End Turn</button>
+      </div>
+      
+      <div class="tech-tags">
+        <span class="tech-tag">HTML5</span>
+        <span class="tech-tag">CSS3</span>
+        <span class="tech-tag">JavaScript</span>
+      </div>
+    </section>
+
+    <section class="scorecard">
+      <h2>Scorecard</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="scorecardBody"></tbody>
+        <tfoot>
+          <tr class="total">
+            <td>Total</td>
+            <td id="totalScoreDisplay">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <footer class="status-bar">
+      <span>🎲 Yatzy v1.0 · 5 dice · 13 categories</span>
+      <!-- The ID here is used by app.js to update the High Score -->
+      <span id="statusText">🏆 High Score: 0 · 👤 Player 1's turn</span>
+    </footer>
+  </div>
+
+  <!-- Modal for Scoring AND Game Over -->
+  <div class="category-modal" id="categoryModal">
+    <div class="modal-content" id="modalContent">
+      <!-- Content will be injected by JS -->
+    </div>
+  </div>
+
+  <!-- Load Logic Modules First -->
+  <script src="js/dice.js"></script>
+  <script src="js/yatzyEngine.js"></script>
+  <script src="js/yatzyGame.js"></script>
+  
+  <!-- Load UI Controller Last -->
+  <script src="js/app.js"></script>
+</body>
+</html>
