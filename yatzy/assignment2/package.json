@@ -2,10 +2,10 @@
   "name": "yatzy-assignment2",
   "version": "1.0.0",
   "description": "Yatzy game with Node.js + Express server-side integration",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
   "keywords": ["yatzy", "express", "node"],
   "author": "Reece Hannah",

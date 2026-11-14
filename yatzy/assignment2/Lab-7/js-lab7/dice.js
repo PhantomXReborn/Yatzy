@@ -1,17 +1,13 @@
 /**
  * Dice Module
  * Encapsulates the logic for rolling dice.
- * Tracks the number of dice and their current values.
  *
- * Lab 06 — CST3106
+ * Lab 06 / Assignment 2 — CST3106
  */
 
 const Dice = (() => {
-  // ----- Private state -----
-  let diceValues = [];
   let diceCount = 5;
 
-  // ----- Private helpers -----
   /**
    * Returns a random integer between 1 and 6 (inclusive).
    */
@@ -19,66 +15,42 @@ const Dice = (() => {
     return Math.floor(Math.random() * 6) + 1;
   }
 
-  // ----- Public API -----
   return {
-    /**
-     * Sets how many dice the module manages.
-     * @param {number} count
-     */
     setDiceCount(count) {
       diceCount = count;
-      diceValues = new Array(count).fill(1);
     },
 
-    /**
-     * Returns the current number of dice.
-     * @returns {number}
-     */
     getDiceCount() {
       return diceCount;
     },
 
     /**
      * Rolls all dice (or only the indices provided).
-     * @param {number[]} [indices] - optional indices to re-roll (held dice are excluded)
+     * @param {number[]} [indices=null] - optional indices to re-roll
      * @returns {number[]} the new dice values
      */
     roll(indices = null) {
-      if (diceValues.length !== diceCount) {
-        diceValues = new Array(diceCount).fill(1);
-      }
+      let newValues = new Array(diceCount).fill(1);
 
       if (Array.isArray(indices) && indices.length > 0) {
+        // If indices provided, we need the current values to preserve held dice.
+        // In the server, we handle the merging, so we just return an object here
+        // OR we adjust how the server calls this. 
+        // For simplicity in the server, let's return an array of random faces
+        // and let the server merge them.
         indices.forEach((i) => {
-          if (i >= 0 && i < diceCount) diceValues[i] = randomFace();
+          if (i >= 0 && i < diceCount) newValues[i] = randomFace();
         });
       } else {
-        diceValues = diceValues.map(() => randomFace());
+        // Roll all
+        newValues = newValues.map(() => randomFace());
       }
 
-      return [...diceValues];
-    },
-
-    /**
-     * Returns a copy of the current dice values.
-     * @returns {number[]}
-     */
-    getValues() {
-      return [...diceValues];
-    },
-
-    /**
-     * Returns a single die value by index.
-     * @param {number} index
-     * @returns {number}
-     */
-    getValue(index) {
-      return diceValues[index];
-    },
+      return newValues;
+    }
   };
 })();
 
-// Export for use in other modules (Node / ES module environments)
 if (typeof module !== "undefined" && module.exports) {
   module.exports = Dice;
 }
