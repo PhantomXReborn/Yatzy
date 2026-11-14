@@ -21,9 +21,15 @@ A browser-based implementation of the classic dice game **Yatzy** (also known as
 
 ## Tech Stack
 
+### Client-Side
 - HTML5
 - CSS3
-- JavaScript
+- JavaScript (ES6+)
+- Fetch API (Assignment 2)
+
+### Server-Side (Assignment 2)
+- Node.js
+- Express.js
 
 ---
 
@@ -31,7 +37,7 @@ A browser-based implementation of the classic dice game **Yatzy** (also known as
 
 Lab 07 focused on bridging the gap between the backend logic modules (created in Lab 06) and the user interface (designed in Lab 05). A fourth module, `app.js`, was introduced to act as the UI Controller. It handles event listeners, DOM manipulation, and rendering state based on the underlying data modules.
 
-### Design Decisions
+### Design Decisions (Lab 07)
 
 - **5 dice**, 6-sided — classic Yatzy.
 - **13 scoring categories** (6 upper + 7 lower).
@@ -41,7 +47,7 @@ Lab 07 focused on bridging the gap between the backend logic modules (created in
 - **Local Storage** — Utilized to save and track the highest score across sessions.
 - **Separation of Concerns** — The UI (`app.js`) is completely decoupled from the game rules (`yatzyEngine.js`) and state (`yatzyGame.js`).
 
-### Project Architecture
+### Project Architecture (Lab 07)
 
 The project is divided into four distinct modules to ensure clean, maintainable code:
 
@@ -54,9 +60,41 @@ The project is divided into four distinct modules to ensure clean, maintainable 
 
 ---
 
+## Assignment 2 — Server-Side Integration (Node.js + Express)
+
+Assignment 2 involved migrating the game from a client-side application to a full-stack application. The goal was to shift the state management and rule calculation to a server, using the Fetch API on the client to communicate.
+
+### Architecture & Enhancements
+
+The game was completely refactored to decouple the frontend from the backend.
+
+- **Decoupled Architecture:** Frontend (HTML/CSS/JS) and backend (Node/Express) are completely separated. The client is now a "dumb terminal" that only renders UI.
+- **Server-Authoritative State:** Dice rolls, category validation, and score calculations are strictly handled on the server to prevent cheating. Game state is held in memory in a `Map` on the server.
+- **Stateless Logic:** The `yatzyEngine.js` was refactored to be completely stateless. Instead of storing scores internally, it receives a `scoreTable` and returns a calculation. This ensures the server can handle multiple concurrent games without data collisions.
+- **Fetch API:** The client uses `async/await` and `fetch()` to send requests and render JSON snapshots of the game state returned by the server. 
+
+### API Endpoints
+
+| Method | Endpoint | Body | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/game` | `{ "players": ["Player 1"] }` | Creates a new game session and returns the initial state. |
+| `GET` | `/api/game/:id` | *None* | Fetches the current state of a specific game. |
+| `POST` | `/api/game/:id/roll` | *None* | Rolls non-held dice and returns the new state. |
+| `PUT` | `/api/game/:id/hold` | `{ "index": 2 }` | Toggles the hold status of a specific die. |
+| `POST` | `/api/game/:id/score` | `{ "category": "ones" }` | Records a score, validates it, and advances the turn. |
+
+### How to Run (Assignment 2)
+
+1. Clone the repository and navigate to the `assignment2` directory.
+2. Install dependencies: `npm install`
+3. Start the server: `npm start`
+4. Open your browser to: `http://localhost:3000`
+
+---
+
 ## 📸 Screenshots
 
-Here is a visual overview of the final single-player Yatzy game:
+Here is a visual overview of the final Yatzy game:
 
 **Game Board & Dice Tray**
 ![Game Board](screenshots/10-board.png)
@@ -72,67 +110,94 @@ Here is a visual overview of the final single-player Yatzy game:
 
 ---
 
-### Module API Overview
+## Module API Overview
 
-#### `dice.js`
+### Server-Side
 
-| Method | Description |
-|--------|-------------|
-| `setDiceCount(count)` | Sets the number of dice managed |
-| `getDiceCount()` | Returns the current dice count |
-| `roll(indices?)` | Rolls all dice, or only the given indices |
-| `getValues()` | Returns a copy of the current dice values |
-| `getValue(index)` | Returns a single die value |
-
-#### `yatzyEngine.js`
-
-| Method | Description |
-|--------|-------------|
-| `calculateScore(category, diceValues)` | Returns the score for a category |
-| `isValidSelection(category, diceValues, playerIndex?)` | Validates a category pick |
-| `recordScore(playerIndex, category, score)` | Records a score in the table |
-| `getTotalScore(playerIndex)` | Total score incl. upper bonus |
-| `getScoreTable(playerIndex)` | Returns the player's score table |
-| `isScorecardComplete(playerIndex)` | True when all 13 categories are filled |
-| `resetScoreTable()` | Clears the score table |
-
-#### `yatzyGame.js`
-
-| Method | Description |
-|--------|-------------|
-| `startNewGame(playerNames?)` | Initializes a new game |
-| `getState()` | Returns a snapshot of the game state |
-| `rollDice()` | Rolls non-held dice (max 3 per turn) |
-| `toggleHold(index)` | Toggles the hold state of a die |
-| `scoreTurn(category)` | Records a score and ends the turn |
-| `endTurn()` | Switches to the next player |
-| `endGame()` | Determines the winner and finalizes |
-
-#### `app.js` (New in Lab 07)
-
+#### `server.js` (Game State Machine)
 | Function | Description |
 |----------|-------------|
-| `renderDice()` | Creates DOM elements for the dice and updates their pips based on `Dice.getValues()` |
-| `renderScorecard()` | Updates the scorecard table with current potential scores and greys out used categories |
-| `updatePlayerPanel()` | Updates the player's total score |
-| `updateHighScoreDisplay()` | Updates the footer with the saved high score from localStorage |
-| `handleGameOver()` | Triggers the final modal, checks for a new high score, and saves it |
-| `openScoreModal(category, score)` | Opens the confirmation modal for scoring |
+| `createGame(players)` | Initializes a new game session |
+| `snapshot(state)` | Returns a safe JSON object for the client |
+| `rollDice(state)` | Rolls non-held dice |
+| `toggleHold(state, index)` | Toggles the hold state of a die |
+| `scoreTurn(state, category)` | Records a score and advances the turn |
 
-### Usage
+#### `yatzyEngine.js` (Stateless Scoring)
+| Function | Description |
+|----------|-------------|
+| `calculateScore(category, diceValues)` | Returns the score for a category |
+| `getTotalScore(scoreTable)` | Total score incl. upper bonus |
+| `isScorecardComplete(scoreTable)` | True when all 13 categories are filled |
 
-Run in console for Yatzy: 
+### Client-Side
+
+#### `app.js` (Fetch Controller - Assignment 2)
+| Function | Description |
+|----------|-------------|
+| `createGame()` | POSTs to the server to start a new session |
+| `doRoll()` | Triggers the dice animation and POSTs to `/roll` |
+| `toggleHold(index)` | PUTs the die index to `/hold` |
+| `scoreCategory(category)` | POSTs the category to `/score` |
+| `render()` | Renders the DOM based on the server's JSON response |
+
+---
+
+## Usage
+
+### Lab 07 (Client-Side Only)
+To run the original client-side version, run in console:
 ```bash
 npx http-server
 ```
-
-To run the game, no build tools are required. Simply open `index.html` in a browser. The HTML must load the modules in the correct order (logic first, UI controller last):
-
+The HTML must load the modules in the correct order (logic first, UI controller last):
 ```html
-<!-- Load Logic Modules First -->
 <script src="js/dice.js"></script>
 <script src="js/yatzyEngine.js"></script>
 <script src="js/yatzyGame.js"></script>
-
-<!-- Load UI Controller Last -->
 <script src="js/app.js"></script>
+```
+
+## Assignment 2 (Full Stack)
+Use npm start to run the Express server, as detailed in the "How to Run" section above.
+
+---
+
+### 2. Updated `# 🎲 Yatzy Game — Assignment 2 (Node.js + Express).md`
+*This file stays inside your `assignment2` folder as the specific README for that submission.*
+
+*(This file remains largely the same as the one you provided, but I added a "Key Enhancements" section to explicitly hit your grading criteria).*
+
+```markdown
+# 🎲 Yatzy Game — Assignment 2 (Node.js + Express)
+
+## Overview
+This project enhances the classic Yatzy game by migrating all game logic and state management from the client-side browser to a Node.js and Express server. The frontend now acts purely as a presentation layer, communicating with the server via asynchronous Fetch API requests.
+
+## 🚀 Setup & Installation
+1. Clone the repository and navigate to the `assignment2` directory.
+2. Install dependencies: `npm install`
+3. Start the server: `npm start`
+4. Open your browser to: `http://localhost:3000`
+
+## 🏗️ Architecture & Enhancements
+- **Decoupled Architecture:** Frontend (HTML/CSS/JS) and backend (Node/Express) are completely separated. The server serves the static files.
+- **Stateless Logic:** The `yatzyEngine.js` was refactored to be stateless, ensuring the server can handle multiple concurrent games without data collisions.
+- **Server-Authoritative State:** Dice rolls, category validation, and score calculations are strictly handled on the server to prevent cheating.
+- **Fetch API:** The client uses `async/await` and `fetch()` to send requests and render JSON snapshots of the game state.
+- **Optimistic UI Animations:** The client triggers a CSS dice-rolling animation while waiting for the server's asynchronous response, creating a smooth user experience despite the network delay.
+
+## 🔌 API Endpoints
+| Method | Endpoint | Body | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/game` | `{ "players": ["Player 1"] }` | Creates a new game session and returns the initial state. |
+| `GET` | `/api/game/:id` | *None* | Fetches the current state of a specific game. |
+| `POST` | `/api/game/:id/roll` | *None* | Rolls non-held dice and returns the new state. |
+| `PUT` | `/api/game/:id/hold` | `{ "index": 2 }` | Toggles the hold status of a specific die. |
+| `POST` | `/api/game/:id/score` | `{ "category": "ones" }` | Records a score, validates it, and advances the turn. |
+
+## 📂 Code Organization
+- `index.js`: Express server setup, API routing, and static file serving.
+- `server.js`: Core game state machine and turn logic.
+- `Lab-7/js-lab7/yatzyEngine.js`: Stateless scoring and rule validation.
+- `Lab-7/js-lab7/app.js`: Client-side Fetch API controller and DOM renderer.
